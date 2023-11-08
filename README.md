@@ -8,7 +8,11 @@
    ```sh
     source ./.venv/bin/activate
    ```
-3. Run the bot using:
+3. Install dependencies:
+   ```sh
+    pip install -r requirements.txt
+   ```
+4. Run the bot using:
    ```sh
     python otter_bot/__main__.py
    ```
