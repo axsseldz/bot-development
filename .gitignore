@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 #google api identification
-.credentials
+credentials.json
 token.json
