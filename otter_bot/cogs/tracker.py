@@ -17,7 +17,7 @@ class Tracker(commands.Cog):
     async def oa(self, ctx: Context, company: str) -> None:
         
         discord_user = ctx.author.name 
-        data_inserted_successfully = self.sheet_manager.insert_data(discord_user, company)
+        data_inserted_successfully = self.sheet_manager.insert_oa_data(discord_user, company)
 
         if data_inserted_successfully:
             await ctx.send(f"{discord_user} has received an Online Assessment from {company}. ✅")
@@ -28,18 +28,52 @@ class Tracker(commands.Cog):
     
 
     @commands.command()
-    async def interviews(self, ctx: Context) -> None:
-        pass
+    async def interviews(self, ctx: Context, company: str) -> None:
+        discord_user = ctx.author.name 
+        data_inserted_successfully = self.sheet_manager.insert_interviews_data(discord_user, company)
+
+        if data_inserted_successfully:
+            await ctx.send(f"{discord_user} has received an Interview from {company}. ✅")
+
+        elif data_inserted_successfully == False:
+            await ctx.send(f"{discord_user} has already executed this command for the company: {company}. ❌")
+  
 
 
     @commands.command()
-    async def final_round(self, ctx: Context) -> None:
-        pass
+    async def final_round(self, ctx: Context, company: str) -> None:
+        discord_user = ctx.author.name 
+        data_inserted_successfully = self.sheet_manager.insert_finalround_data(discord_user, company)
+
+        if data_inserted_successfully:
+            await ctx.send(f"{discord_user} has received a final round interview from {company}. ✅")
+
+        elif data_inserted_successfully == False:
+            await ctx.send(f"{discord_user} has already executed this command for the company: {company}. ❌")
 
 
     @commands.command()
-    async def offer(self, ctx: Context) -> None:
-        pass
+    async def offer(self, ctx: Context, company: str) -> None:
+        discord_user = ctx.author.name 
+        data_inserted_successfully = self.sheet_manager.insert_offer_data(discord_user, company)
+
+        if data_inserted_successfully:
+            await ctx.send(f"{discord_user} has received a offer from {company}. 🎉")
+
+        elif data_inserted_successfully == False:
+            await ctx.send(f"{discord_user} has already executed this command for the company: {company}. ❌")
+
+    
+    @commands.command()
+    async def rejection(self, ctx: Context, company: str) -> None:
+        discord_user = ctx.author.name 
+        data_inserted_successfully = self.sheet_manager.insert_rejection_data(discord_user, company)
+
+        if data_inserted_successfully:
+            await ctx.send(f"{discord_user} has been rejected from {company}. 😭")
+
+        elif data_inserted_successfully == False:
+            await ctx.send(f"{discord_user} has already executed this command for the company: {company}. ❌")
 
 
 
