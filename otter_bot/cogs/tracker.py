@@ -12,12 +12,36 @@ class Tracker(commands.Cog):
         self.bot: Bot = bot
         self.sheet_manager = SheetManager()
 
+
     @commands.command()
-    async def tracker(self, ctx: Context) -> None:
-        """Command"""
-        response1 = self.sheet_manager.query('A1:F4')
-        print(response1)
-        await ctx.send("this is a tracker command!")
+    async def oa(self, ctx: Context, company: str) -> None:
+        
+        discord_user = ctx.author.name 
+        data_inserted_successfully = self.sheet_manager.insert_data(discord_user, company)
+
+        if data_inserted_successfully:
+            await ctx.send(f"{discord_user} has received an Online Assessment from {company}. ✅")
+
+        else:
+            await ctx.send(f"{discord_user} has already executed this command for the company: {company}. ❌")
+        
+    
+
+    @commands.command()
+    async def interviews(self, ctx: Context) -> None:
+        pass
+
+
+    @commands.command()
+    async def final_round(self, ctx: Context) -> None:
+        pass
+
+
+    @commands.command()
+    async def offer(self, ctx: Context) -> None:
+        pass
+
+
 
 async def setup(bot: Bot) -> None:
     """Set up"""
