@@ -13,9 +13,20 @@ class Tracker(commands.Cog):
         self.sheet_manager = SheetManager()
 
 
+
     @commands.command()
-    async def oa(self, ctx: Context, company: str) -> None:
-        
+    async def apply(self, ctx: Context, company: str) -> None:     
+        discord_user = ctx.author.name 
+        data_inserted_successfully = self.sheet_manager.insert_apply_data(discord_user, company)
+
+        if data_inserted_successfully:
+            await ctx.send(f"{discord_user} has received an Online Assessment from {company}. ✅")
+
+        else:
+            await ctx.send(f"{discord_user} has already executed this command for the company: {company}. ❌")
+
+    @commands.command()
+    async def oa(self, ctx: Context, company: str) -> None:     
         discord_user = ctx.author.name 
         data_inserted_successfully = self.sheet_manager.insert_oa_data(discord_user, company)
 

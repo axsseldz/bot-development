@@ -22,6 +22,7 @@ async def main() -> None:
     async with bot:
         await register_cogs(bot)
         await bot.start(os.environ["DISCORD_TOKEN"])
+        
 
 
 if __name__ == "__main__":

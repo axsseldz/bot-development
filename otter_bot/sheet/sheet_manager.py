@@ -28,27 +28,54 @@ class SheetManager():
             result = sheet.values().get(spreadsheetId=self.sheet_id,
                                         range=query_range).execute()
             values = result.get('values', [])
-            return values    
+            
+            return values  
+          
             
         except HttpError as err:
             print(err)
         return []
     
-    def insert_oa_data(self, user: str, company: str) -> None:
+
+    def get_allowed_companies_info(self) -> list[list[str]]:
         """
-        Insert data into the spreadsheet.
+        Get information from the 'Allowed Companies' sheet.
+        Returns a list with the information in the sheet.
+        """
+        try:
+            # Build the service and make the API request
+            service = build('sheets', 'v4', credentials=self.creds)
+            sheet = service.spreadsheets()
+            result = sheet.values().get(spreadsheetId=self.sheet_id, range='Allowed Companies').execute()
+            values = result.get('values', [])
+
+            return values
+
+        except HttpError as err:
+            print(err)
+
+        return []
+    
+    
+
+    
+    def insert_apply_data(self, user: str, company: str) -> str:
+        """
+        Insert application data into the Google SpreadSheet (Apply column).
         """
         try:
             service = build('sheets', 'v4', credentials=self.creds)
             sheet = service.spreadsheets()
 
-             # Check if user and company already exist
-            range_to_check = 'A:C'  # Assuming columns A-C contain User, Company, Online Assessment
+            range_to_check = 'A:C'  
             response = sheet.values().get(spreadsheetId=self.sheet_id, range=range_to_check).execute()
             rows = response.get('values', [])
+
+            #Check if user and company already exist
             for row in rows:
                 if len(row) >= 2 and row[0] == user and row[1] == company:
-                    return False  # User with the same company already exists
+                    return '1'
+
 
             # Data to be inserted
             values = [[user, company, '✅']]
@@ -58,18 +85,79 @@ class SheetManager():
             next_row = len(rows) + 1
             range_to_insert = f"A{next_row}:C{next_row}"
 
-            # Using append to insert a new row
             sheet.values().append(
                 spreadsheetId=self.sheet_id,
                 range=range_to_insert,
                 valueInputOption='RAW',
                 body=body).execute()
-            return True
+            return '2'
         
         except HttpError as err:
             print(err)
-        
-    def insert_interviews_data(self, user: str, company: str) -> None:
+    
+    def insert_oa_data(self, user: str, company: str) -> str:
+        """
+        Insert Online Assessment data into the Google SpreadSheet (Online Assessment column).
+        """
+        try:
+            service = build('sheets', 'v4', credentials=self.creds)
+            sheet = service.spreadsheets()
+
+            range_to_check = 'A:D' 
+            response = sheet.values().get(spreadsheetId=self.sheet_id, range=range_to_check).execute()
+            rows = response.get('values', [])
+
+            # Check if user and company already exist, if so just mark required column
+            for index, row in enumerate(rows):
+                if len(row) >= 2 and row[0] == user and row[1] == company:
+
+                    arreglo = row
+
+                    for i in range(4, len(row)):
+                        if row[i] == "✅":
+                            return
+                        
+                    
+
+                    
+                    if len(row) > 3 and row[3] == "✅":  
+                        return '1'  
+                    
+                    
+                    
+                    elif len(row) > 3:
+                        return '2'
+                    
+                    else:
+                        range_to_update = f"D{index + 1}"
+                        body = {'values': [['✅']]}
+                        sheet.values().update(
+                            spreadsheetId=self.sheet_id,
+                            range=range_to_update,
+                            valueInputOption='RAW',
+                            body=body).execute()
+                        return '3'
+                    
+                
+            values = [[user, company, '-', '✅']]  
+            body = {'values': values}
+            next_row = len(rows) + 1
+            range_to_insert = f"A{next_row}:D{next_row}"
+
+            # Append a new row
+            sheet.values().append(
+            spreadsheetId=self.sheet_id,
+            range=range_to_insert,
+            valueInputOption='RAW',
+            body=body).execute()
+                    
+            return '4'
+
+        except HttpError as err:
+            print(err)
+
+
+    def insert_phone_data(self, user: str, company: str) -> None:
         """
         Insert data into the spreadsheet.
         """
@@ -78,44 +166,92 @@ class SheetManager():
             sheet = service.spreadsheets()
 
             # Check if user and company already exist
-            range_to_check = 'A:D'
+            range_to_check = 'A:E'
             response = sheet.values().get(spreadsheetId=self.sheet_id, range=range_to_check).execute()
             rows = response.get('values', [])
             for index, row in enumerate(rows):
                 if len(row) >= 2 and row[0] == user and row[1] == company:
-                    # Check if the command was already executed for this user and company
-                    if len(row) > 3 and row[3] == '✅':  
-                        return False  # Command already executed for this user and company
+
+          
+                    if len(row) > 4 and row[4] == '✅':  
+                        return '1'  
+                    
+                    elif len(row) > 4:
+                        return '2'
+                    
                     else:
-                        # Update only the Interviews column
-                        range_to_update = f"D{index + 1}"
+                        # Update only the Phone column
+                        range_to_update = f"E{index + 1}"
                         body = {'values': [['✅']]}
                         sheet.values().update(
                             spreadsheetId=self.sheet_id,
                             range=range_to_update,
                             valueInputOption='RAW',
                             body=body).execute()
-                        return True
+                        return '3'
                     
-            for row in rows:
-                if len(row) >= 2 and row[0] == user and row[1] == company and row[3] == "✅":
-                    return False
-                
-                else:
-                    # Data to be inserted for new user and company
-                    values = [[user, company, '', '✅']]  # Empty string for the Online Assessment column
-                    body = {'values': values}
-                    next_row = len(rows) + 1
-                    range_to_insert = f"A{next_row}:D{next_row}"
+    
+            values = [[user, company, '-', '-', '✅']]  
+            body = {'values': values}
+            next_row = len(rows) + 1
+            range_to_insert = f"A{next_row}:E{next_row}"
 
-                    # Append a new row
-                    sheet.values().append(
-                        spreadsheetId=self.sheet_id,
-                        range=range_to_insert,
-                        valueInputOption='RAW',
-                        body=body).execute()
+            # Append a new row
+            sheet.values().append(
+                spreadsheetId=self.sheet_id,
+                range=range_to_insert,
+                valueInputOption='RAW',
+                body=body).execute()
+            
+            return '4'
+
+        except HttpError as err:
+            print(err)
+        
+    def insert_interview_data(self, user: str, company: str) -> None:
+        """
+        Insert data into the spreadsheet.
+        """
+        try:
+            service = build('sheets', 'v4', credentials=self.creds)
+            sheet = service.spreadsheets()
+
+            range_to_check = 'A:G'
+            response = sheet.values().get(spreadsheetId=self.sheet_id, range=range_to_check).execute()
+            rows = response.get('values', [])
+            for index, row in enumerate(rows):
+                if len(row) >= 2 and row[0] == user and row[1] == company:
+              
+                    if len(row) > 5 and row[5] == '✅':  
+                        return '1' 
                     
-                    return True
+                    elif len(row) > 5:
+                        return '2'
+                    
+                    else:
+                
+                        range_to_update = f"F{index + 1}"
+                        body = {'values': [['✅']]}
+                        sheet.values().update(
+                            spreadsheetId=self.sheet_id,
+                            range=range_to_update,
+                            valueInputOption='RAW',
+                            body=body).execute()
+                        return '3'
+         
+            values = [[user, company, '-', '-', '-','✅']]  
+            body = {'values': values}
+            next_row = len(rows) + 1
+            range_to_insert = f"A{next_row}:F{next_row}"
+
+            # Append a new row
+            sheet.values().append(
+                spreadsheetId=self.sheet_id,
+                range=range_to_insert,
+                valueInputOption='RAW',
+                body=body).execute()
+            
+            return '4'
 
         except HttpError as err:
             print(err)
@@ -130,17 +266,17 @@ class SheetManager():
             sheet = service.spreadsheets()
 
             # Check if user and company already exist
-            range_to_check = 'A:E'
+            range_to_check = 'A:G'
             response = sheet.values().get(spreadsheetId=self.sheet_id, range=range_to_check).execute()
             rows = response.get('values', [])
             for index, row in enumerate(rows):
                 if len(row) >= 2 and row[0] == user and row[1] == company:
                     # Check if the command was already executed for this user and company
-                    if len(row) > 4 and row[4] == '✅':  
+                    if (len(row) > 6 and row[7] == '🎉') or (len(row) > 5 and row[8] == '😭'):
                         return False  # Command already executed for this user and company
                     else:
                         # Update only the Interviews column
-                        range_to_update = f"E{index + 1}"
+                        range_to_update = f"G{index + 1}"
                         body = {'values': [['✅']]}
                         sheet.values().update(
                             spreadsheetId=self.sheet_id,
@@ -150,15 +286,15 @@ class SheetManager():
                         return True
                     
             for row in rows:
-                if len(row) >= 2 and row[0] == user and row[1] == company and row[4] == "✅":
+                if len(row) >= 2 and row[0] == user and row[1] == company and row[7] == "🎉":
                     return False
                 
                 else:
                     # Data to be inserted for new user and company
-                    values = [[user, company, '', '', '✅']]  # Empty string for the Online Assessment column
+                    values = [[user, company, '-', '-', '-','-', '✅']]  # Empty string for the Online Assessment column
                     body = {'values': values}
                     next_row = len(rows) + 1
-                    range_to_insert = f"A{next_row}:E{next_row}"
+                    range_to_insert = f"A{next_row}:G{next_row}"
 
                     # Append a new row
                     sheet.values().append(
@@ -171,6 +307,7 @@ class SheetManager():
 
         except HttpError as err:
             print(err)
+                     
 
 
     def insert_offer_data(self, user: str, company: str) -> None:
