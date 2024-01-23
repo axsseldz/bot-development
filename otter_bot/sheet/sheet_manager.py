@@ -110,6 +110,6 @@ class SheetManager():
         """
         Insert rejection data into the Google SpreadSheet (Rejection column).
         """
-        response = insert_data(user, company, self.creds, self.sheet_id, 3, 'I')
+        response = insert_data(user, company, self.creds, self.sheet_id, 8, 'I')
         return response
     

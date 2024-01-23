@@ -1,6 +1,8 @@
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from otter_bot.common.bot_messages import Messages
+
 def insert_data(
         user: str, 
         company: str, 
@@ -23,13 +25,13 @@ def insert_data(
             for index, row in enumerate(rows):
 
                 if len(row) >= 2 and row[0] == user and row[1] == company:
-                    for i in range(index_to_insert, len(row)):
+                    for i in range(index_to_insert, len(row) - 2):
     
                         if row[i] != '-':
-                            return False
+                            return '1'
                         
-                    if row[len(row) - 2] != '-':
-                        return False
+                    if row[len(row) - 2] != '-' or row[len(row) - 1] != '-':
+                        return '2'
                         
                     else:
                         range_to_update = f"{column}{index + 1}"
@@ -39,7 +41,7 @@ def insert_data(
                             range=range_to_update,
                             valueInputOption='RAW',
                             body=body).execute()
-                        return True
+                        return '3'
                     
             if from_apply:
                 values = [[user, company, '✅', '-', '-', '-', '-', '-', '-']]
@@ -53,11 +55,40 @@ def insert_data(
                     valueInputOption='RAW',
                     body=body).execute()
             
-                return True
+                return '4'
 
             else:
-                return False
+                return '5'
             
 
         except HttpError as err:
             print(err)
+
+
+
+def message_handler(
+        user: str, 
+        company: str, 
+        insertion_response: str,
+        process_state: str = '',
+        from_rejection = False,
+        from_offer = False, ) -> str:
+    """
+    Helper function to hadle Bot messages
+    """
+
+    if insertion_response == '1':
+        return Messages.advanced_process_message(user, company, process_state)
+
+    elif insertion_response == '2':
+        return Messages.final_desicion_message(user, company)
+    
+    elif insertion_response == '3':
+        return Messages.successful_insertion_message(user, company, from_offer, from_rejection,process_state)
+
+    elif insertion_response == '4':
+        return Messages.apply_message(user, company)
+
+    elif insertion_response == '5':
+        return Messages.proper_procedure_message(user, company)
+    
