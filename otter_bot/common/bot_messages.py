@@ -2,6 +2,11 @@ class Messages:
     """Dependency to inject messages"""
 
     @staticmethod
+    def already_applied_message(user: str, company: str) -> str:
+        """Message when the user already applied to a certain company"""
+        return f"{user} already applied to {company}. ❌"
+
+    @staticmethod
     def advanced_process_message(user: str, company: str, process_state: str) -> str:
         """Message when there is an advanced process"""
         return f"{user} has an advanced process with {company}, can't have {process_state} at this point. ❌"
