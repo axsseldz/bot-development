@@ -64,7 +64,34 @@ def insert_data(
         except HttpError as err:
             print(err)
 
+def insert_company(company: str,  creds: any, sheet_id: any) -> bool :
+    """
+    Helper funcition to insert data into companies Google spreadsheet
+    """
+    try:
+        service = build('sheets', 'v4', credentials=creds)
+        sheet = service.spreadsheets()
 
+        response = sheet.values().get(spreadsheetId=sheet_id, range="Allowed Companies").execute()
+        rows = response.get('values', [])
+
+        if [company] in rows:
+            return False
+
+        new_data = [[company]]
+        body = {'values': new_data}
+        sheet.values().append(
+            spreadsheetId=sheet_id,
+            range="Allowed Companies",
+            valueInputOption='RAW',
+            body=body
+        ).execute()
+
+        print(f"'{company}' has been added to the spread sheet")
+        return True
+    except HttpError as err:
+        print(err)
+        return False
 
 def message_handler(
         user: str, 
