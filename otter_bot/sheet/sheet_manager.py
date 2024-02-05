@@ -7,7 +7,7 @@ from googleapiclient.errors import HttpError
 from google.oauth2.credentials import Credentials
 
 from otter_bot.sheet.validate import validate_credentials
-from otter_bot.functions.helper_functions import insert_data
+from otter_bot.functions.helper_functions import insert_data, insert_company
 
 load_dotenv()
 
@@ -57,8 +57,14 @@ class SheetManager():
 
         return []
 
+    def insert_company_data(self, company: str) -> str:
+        """
+        Insert company name into the Allowed Companies sheet
+        """
+        response = insert_company(company, self.creds, self.sheet_id)
+        return response
     
-    def insert_apply_data(self, user: str, company: str) -> str:
+    def insert_apply_data(self, user: str, company: str) -> bool:
         """
         Insert application data into the Google SpreadSheet (Apply column).
         """

@@ -1,9 +1,12 @@
+import os
 
+from discord import utils
 from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.ext.commands import Context, MissingRequiredArgument, CommandError, CommandNotFound
 
 from otter_bot.sheet.sheet_manager import SheetManager
+from otter_bot.cogs.views.add_company import ButtonAddCompany
 from otter_bot.functions.helper_functions import message_handler
 
 class Tracker(commands.Cog):
@@ -167,6 +170,35 @@ class Tracker(commands.Cog):
 
         await ctx.send(message_handler(discord_user, company, insertion_response, process_state='a Rejection', from_rejection=True))
 
+    @Process.command()
+    async def Add(self, ctx: Context, company_name: str) -> None:
+        # get the channel where command was called and send message
+        current_channel = ctx.channel
+        
+        await current_channel.send(f'Approval sent for **{company_name}** company ⌛') 
+        
+        # Identify staff channel and send approval message
+        staff_channel_name = os.environ['APPROVAL_CHANNEL_NAME']
+        staff_channel = utils.get(ctx.guild.channels, name=staff_channel_name)
+        staff_channel = staff_channel if staff_channel else current_channel
+
+        await staff_channel.send(f'Incoming pending approval for **{company_name}** company ⌛')
+        view = ButtonAddCompany(timeout=10)
+        message = await staff_channel.send(view=view)
+        view.message = message
+        await view.wait()
+
+        if view.response:
+            #update spread sheet
+            await ctx.author.send(f'Congrats, your request to add **{company_name}** company has been accepted ✅')
+            response = self.sheet_manager.insert_company_data(company_name)
+            if response:
+                await staff_channel.send("Company added to spread sheet successfully! ✅")
+            else:
+                await staff_channel.send("Company couldn't be added! ❌")
+        else:
+            await ctx.author.send(f'Sorry, your request to add **{company_name}** company has been declined ❌')
+            
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: Context, error: CommandError):
