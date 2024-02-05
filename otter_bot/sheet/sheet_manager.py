@@ -68,7 +68,7 @@ class SheetManager():
         """
         Insert application data into the Google SpreadSheet (Apply column).
         """
-        response = insert_data(user, company, self.creds, self.sheet_id, from_apply=True)
+        response = insert_data(user, company, self.creds, self.sheet_id, 2, from_apply=True)
         return response
     
 

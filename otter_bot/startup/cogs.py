@@ -1,7 +1,7 @@
 from types import ModuleType  # pylint: disable=no-name-in-module
 
 from discord.ext.commands import Bot
-from otter_bot.cogs import tracker, companies
+from otter_bot.cogs import tracker
 
 
 def __format_module_path_into_cog_extension(absolute_module_path: str) -> str:
@@ -15,7 +15,6 @@ async def register_cogs(bot: Bot) -> None:
     """Registers all the allowed cogs for the bot"""
     allowed_cogs: list[ModuleType] = [
         tracker,
-        companies
     ]
 
     for cog in allowed_cogs:
