@@ -38,7 +38,7 @@ class SheetManager():
         return []
     
 
-    def get_allowed_companies_info(self) -> list[list[str]]:
+    def get_allowed_companies(self) -> list[list[str]]:
         """
         Get information from the 'Allowed Companies' sheet.
         Returns a list with the information in the sheet.

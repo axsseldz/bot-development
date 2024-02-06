@@ -3,6 +3,11 @@ from googleapiclient.errors import HttpError
 
 from otter_bot.common.bot_messages import Messages
 
+import discord
+from discord.ext.commands import Bot
+from discord.ext.commands import Context
+
+
 def insert_data(
         user: str, 
         company: str, 
@@ -88,6 +93,8 @@ def insert_data(
         except HttpError as err:
             print(err)
 
+
+
 def insert_company(company: str,  creds: any, sheet_id: any) -> bool :
     """
     Helper funcition to insert data into companies Google spreadsheet
@@ -95,12 +102,6 @@ def insert_company(company: str,  creds: any, sheet_id: any) -> bool :
     try:
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
-
-        response = sheet.values().get(spreadsheetId=sheet_id, range="Allowed Companies").execute()
-        rows = response.get('values', [])
-
-        if [company] in rows:
-            return False
 
         new_data = [[company]]
         body = {'values': new_data}
@@ -152,3 +153,9 @@ def message_handler(
     elif insertion_response == '5':
         return Messages.proper_procedure_message(user, company)
     
+
+def get_channel_by_id(bot: Bot, channel_id: int):
+    """
+    Function to get the a channel by ID
+    """
+    return bot.get_channel(channel_id) if channel_id else None

@@ -8,6 +8,8 @@ from discord.ext.commands import Context, MissingRequiredArgument, CommandError,
 from otter_bot.sheet.sheet_manager import SheetManager
 from otter_bot.cogs.views.add_company import ButtonAddCompany
 from otter_bot.functions.helper_functions import message_handler
+from otter_bot.common.constants import SUDO_CHANNEL_ID
+from otter_bot.functions.helper_functions import get_channel_by_id
 
 class Tracker(commands.Cog):
     """Tracker"""
@@ -41,10 +43,17 @@ class Tracker(commands.Cog):
         Example:
         !Process Apply Google
         """
+        current_channel = ctx.channel
+        company_str: str = "".join(company)
+        companies = self.sheet_manager.get_allowed_companies()
+
+        if [company_str] not in companies:
+            await current_channel.send(f"**{company_str}** is not registered, try to request to add this company first. 📋")
+            return 
+
         discord_user = ctx.author.name 
         insertion_response = self.sheet_manager.insert_apply_data(discord_user, company)
-
-        await ctx.send(message_handler(discord_user, company, insertion_response))
+        await current_channel.send(message_handler(discord_user, company, insertion_response))
 
 
     @Process.command()
@@ -60,11 +69,19 @@ class Tracker(commands.Cog):
 
         Example:
         !Process OA Google
-        """    
+        """  
+        current_channel = ctx.channel
+        company_str: str = "".join(company)
+        companies = self.sheet_manager.get_allowed_companies()
+
+        if [company_str] not in companies:
+            await current_channel.send(f"**{company_str}** is not registered, try to request to add this company first. 📋")
+            return 
+
         discord_user = ctx.author.name 
         insertion_response = self.sheet_manager.insert_oa_data(discord_user, company)
 
-        await ctx.send(message_handler(discord_user, company, insertion_response, process_state='an Online Assessment'))
+        await current_channel.send(message_handler(discord_user, company, insertion_response, process_state='an Online Assessment'))
 
 
     @Process.command()
@@ -81,10 +98,18 @@ class Tracker(commands.Cog):
         Example:
         !Process Phone Google
         """    
+        current_channel = ctx.channel
+        company_str: str = "".join(company)
+        companies = self.sheet_manager.get_allowed_companies()
+
+        if [company_str] not in companies:
+            await current_channel.send(f"**{company_str}** is not registered, try to request to add this company first. 📋")
+            return 
+        
         discord_user = ctx.author.name 
         insertion_response = self.sheet_manager.insert_phone_data(discord_user, company)
 
-        await ctx.send(message_handler(discord_user, company, insertion_response, process_state='a Phone Interview'))
+        await current_channel.send(message_handler(discord_user, company, insertion_response, process_state='a Phone Interview'))
         
     
 
@@ -102,10 +127,18 @@ class Tracker(commands.Cog):
         Example:
         !Process Interview Google
         """    
+        current_channel = ctx.channel
+        company_str: str = "".join(company)
+        companies = self.sheet_manager.get_allowed_companies()
+
+        if [company_str] not in companies:
+            await current_channel.send(f"**{company_str}** is not registered, try to request to add this company first. 📋")
+            return
+        
         discord_user = ctx.author.name 
         insertion_response = self.sheet_manager.insert_interview_data(discord_user, company)
 
-        await ctx.send(message_handler(discord_user, company, insertion_response, process_state='a Interview'))
+        await current_channel.send(message_handler(discord_user, company, insertion_response, process_state='a Interview'))
   
 
 
@@ -123,10 +156,18 @@ class Tracker(commands.Cog):
         Example:
         !Process Final_round Google
         """    
+        current_channel = ctx.channel
+        company_str: str = "".join(company)
+        companies = self.sheet_manager.get_allowed_companies()
+
+        if [company_str] not in companies:
+            await current_channel.send(f"**{company_str}** is not registered, try to request to add this company first. 📋")
+            return
+        
         discord_user = ctx.author.name 
         insertion_response = self.sheet_manager.insert_finalround_data(discord_user, company)
 
-        await ctx.send(message_handler(discord_user, company, insertion_response, process_state='a Final Round Interview'))
+        await current_channel.send(message_handler(discord_user, company, insertion_response, process_state='a Final Round Interview'))
 
         
 
@@ -145,10 +186,18 @@ class Tracker(commands.Cog):
         Example:
         !Process Offer Google
         """    
+        current_channel = ctx.channel
+        company_str: str = "".join(company)
+        companies = self.sheet_manager.get_allowed_companies()
+
+        if [company_str] not in companies:
+            await current_channel.send(f"**{company_str}** is not registered, try to request to add this company first. 📋")
+            return
+        
         discord_user = ctx.author.name 
         insertion_response = self.sheet_manager.insert_offer_data(discord_user, company)
 
-        await ctx.send(message_handler(discord_user, company, insertion_response, process_state='an Offer', from_offer=True))
+        await current_channel.send(message_handler(discord_user, company, insertion_response, process_state='an Offer', from_offer=True))
 
     
     @Process.command()
@@ -165,40 +214,53 @@ class Tracker(commands.Cog):
         Example:
         !Process Rejection Google
         """    
+        current_channel = ctx.channel
+        company_str: str = "".join(company)
+        companies = self.sheet_manager.get_allowed_companies()
+
+        if [company_str] not in companies:
+            await current_channel.send(f"**{company_str}** is not registered, try to request to add this company first. 📋")
+            return
+        
         discord_user = ctx.author.name 
         insertion_response = self.sheet_manager.insert_rejection_data(discord_user, company)
 
-        await ctx.send(message_handler(discord_user, company, insertion_response, process_state='a Rejection', from_rejection=True))
+        await current_channel.send(message_handler(discord_user, company, insertion_response, process_state='a Rejection', from_rejection=True))
 
     @Process.command()
-    async def Add(self, ctx: Context, company_name: str) -> None:
+    async def Add(self, ctx: Context, *company: str) -> None:
         # get the channel where command was called and send message
         current_channel = ctx.channel
-        
-        await current_channel.send(f'Approval sent for **{company_name}** company ⌛') 
-        
-        # Identify staff channel and send approval message
-        staff_channel_name = os.environ['APPROVAL_CHANNEL_NAME']
-        staff_channel = utils.get(ctx.guild.channels, name=staff_channel_name)
-        staff_channel = staff_channel if staff_channel else current_channel
+        discord_user = ctx.author.name 
+        company_str: str = "".join(company)
+        channel_id: int = SUDO_CHANNEL_ID
+        channel = get_channel_by_id(self.bot, channel_id)
+        companies = self.sheet_manager.get_allowed_companies()
 
-        await staff_channel.send(f'Incoming pending approval for **{company_name}** company ⌛')
-        view = ButtonAddCompany(timeout=10)
-        message = await staff_channel.send(view=view)
+        if [company_str] in companies:
+            await current_channel.send(f"**{company_str}** has been added before, please check our companies list. 📋")
+            return 
+            
+        
+        await current_channel.send(f"Request for approval has been submitted to the administration channel to include **{company_str}** in our portfolio. ⌛") 
+        await channel.send(f"Incoming pending approval to include **{company_str}** in our companies portfolio. ⌛")
+
+        view = ButtonAddCompany(timeout=36000)
+        message = await channel.send(view=view)
         view.message = message
         await view.wait()
 
         if view.response:
             #update spread sheet
-            await ctx.author.send(f'Congrats, your request to add **{company_name}** company has been accepted ✅')
-            response = self.sheet_manager.insert_company_data(company_name)
+            response = self.sheet_manager.insert_company_data(company_str)
+
             if response:
-                await staff_channel.send("Company added to spread sheet successfully! ✅")
-            else:
-                await staff_channel.send("Company couldn't be added! ❌")
+                await current_channel.send(f"A new company!!, **{company_str}** has been added to our companies portfolio. 🤩")
+                await ctx.author.send(f'Congrats! {discord_user}, your request to include **{company_str}** in our portfolio has been approved ✅')
+
         else:
-            await ctx.author.send(f'Sorry, your request to add **{company_name}** company has been declined ❌')
-            
+            await ctx.author.send(f'Sorry, your request to include **{company_str}** in our companies portfolio has been rejected, check our guinelines or reach out one of our *ROOT* members, thank you. 📋')
+            await ctx.current_channel.send(f"Request to include **{company_str}** in our companies portfolio has been rejected, check our guinelines or reach out one of our *ROOT* members, thank you. 📋")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: Context, error: CommandError):
